@@ -198,6 +198,17 @@ app.get('/get/?\?', (req, res) => {
     }
 })
 
+app.post('/delete/:key', (req, res) => {
+    const key = req.params.key;
+    try{
+        db.run(`DELETE FROM variables WHERE key=?`, key);
+        res.send(`DELETED ${key}`);
+    }catch(err){
+        console.error('[set] Error deleting variable value', err);
+        res.send(err);
+    }
+})
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 })
