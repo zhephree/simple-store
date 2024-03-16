@@ -6,6 +6,11 @@ const db = require('./db');
 
 const port = process.env.SIMPLE_PORT || 32323;
 
+/**
+ * Takes a stringy value and determines if it's numbery or booleany and formats it accordingly
+ * @param {string} value - a stringy value
+ * @returns float|int|bool|string
+ */
 const coerce = (value) => {
     if(parseFloat(value).toString() == value){
         return parseFloat(value);
@@ -29,6 +34,9 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
+/**
+ * Handles reading the raw body of an Express Request body. Appends a `rawBody` property to the Request object
+ */
 app.use(function(req, res, next) {
     var contentType = req.headers['content-type'] || '', mime = contentType.split(';')[0];
 
@@ -47,20 +55,30 @@ app.use(function(req, res, next) {
     });
 });
 
+/**
+ * A little health check endpoint
+ */
 app.get('/', (req, res) => {
     res.send('OK');
 })
 
+/**
+ * Set a variable. Uses URLs in the format /set/variable and
+ * takes the raw POST body and stores that as the variable's value.
+ * If a variable with the same key already exists, its value will
+ * be updated with the supplied value in the POST body
+ * Example Response: SET some_var TO "112324234"
+ */
 app.post('/set/:key', (req, res) => {
     const key = req.params.key;
     const value = req.rawBody;
     let mode = 'SET';
-
     
     try{
         db.all(`SELECT key FROM variables WHERE key=?`, key, (err, rows) => {
             if(err){
                 console.error(err);
+                res.send('ERROR: ' + err);
                 return; 
             }
             if(rows.length > 0){
@@ -74,9 +92,17 @@ app.post('/set/:key', (req, res) => {
         })
     }catch(err){
         console.error('[set] Error setting variable value', err);
+        res.send('ERROR: ' + err);
     }
 })
 
+/**
+ * Stores one or more values in the database.
+ * Uses a URL format of /set?some_var=123&another_var=some+text
+ * If a key with the same name already exists, its value will be
+ * updated with the supplied value
+ * Example Response: SET some_var TO "123"\nUPDATED another_var TO "some text"
+ */
 app.post('/set/?\?', (req, res) => {
     let output = '';
     const varsToSet = Object.keys(req.query).length;
@@ -88,7 +114,7 @@ app.post('/set/?\?', (req, res) => {
             db.all(`SELECT key FROM variables WHERE key=?`, key, (err, rows) => {
                 if(err){
                     console.error(err);
-                    res.send(err);
+                    res.send('ERROR: ' + err);
                     return; 
                 }
                 if(rows.length > 0){
@@ -108,11 +134,18 @@ app.post('/set/?\?', (req, res) => {
             })
         }catch(err){
             console.error('[set] Error setting variable value', err);
-            res.send(err);
+            res.send('ERROR: ' + err);
         }
     }
 })
 
+/**
+ * Retrieves the value of one or more variables and returns 
+ * the result as a JSON response.
+ * URL format: /get/json?some_var,anotherVar,thisVar
+ * If a key does not exist in the database, it will be omitted
+ * from the JSON response object
+ */
 app.get('/get/json/?\?', (req, res) => {
     const keyNames = Object.keys(req.query)[0];
     if(keyNames && keyNames.length > 0){
@@ -124,12 +157,11 @@ app.get('/get/json/?\?', (req, res) => {
         db.all(query, (err, rows) => {
             if(err){
                 console.error(err);
-                res.send(err);
+                res.send('ERROR: ' + err);
                 return;
             }
 
             if(rows && rows.length > 0){
-                let output = [];
                 for(const row of rows){
                     keyHash[row.key] = coerce(row.value);
                 }
@@ -140,15 +172,20 @@ app.get('/get/json/?\?', (req, res) => {
             }
         })
     }else{
-        res.send('NO KEYS');
+        res.send('ERROR: NO KEYS');
     }
 })
 
+/**
+ * Retrieves the value of a variable. 
+ * URL format: /get/some_var
+ * If there is not value for the var, an empty response is sent.
+ */
 app.get('/get/:key', (req, res) => {
     db.get(`SELECT key, value FROM variables WHERE key=?`, req.params.key, (err, row) => {
         if(err){
             console.error(err);
-            res.send(err);
+            res.send('ERROR: ' + err);
             return;
         }
         if(row){
@@ -159,6 +196,14 @@ app.get('/get/:key', (req, res) => {
     })
 })
 
+/**
+ * Retrieves the value of one or more variables and returns
+ * the values as a comma separated list.
+ * URL format: /get?some_var,anotherVar,thisVar
+ * If a value for a key has not been set, it will be returned 
+ * as UNDEFINED in the list.
+ * Example Response: 123,UNDEFINED,some words
+ */
 app.get('/get/?\?', (req, res) => {
     const keyNames = Object.keys(req.query)[0];
     if(keyNames && keyNames.length > 0){
@@ -166,11 +211,10 @@ app.get('/get/?\?', (req, res) => {
         let keyHash = {};
 
         const query = `SELECT key, value FROM variables WHERE key IN (${keys.map((keyName) => `'${keyName}'`).join(',')})`;
-        console.log(query);
         db.all(query, (err, rows) => {
             if(err){
                 console.error(err);
-                res.send(err);
+                res.send('ERROR: ' + err);
                 return;
             }
 
@@ -194,10 +238,15 @@ app.get('/get/?\?', (req, res) => {
             }
         })
     }else{
-        res.send('NO KEYS');
+        res.send('ERROR: NO KEYS');
     }
 })
 
+/**
+ * Deletes a key/value pair from the database.
+ * URL format: /delete/some_var
+ * Example Response: DELETED some_var
+ */
 app.post('/delete/:key', (req, res) => {
     const key = req.params.key;
     try{
@@ -205,7 +254,7 @@ app.post('/delete/:key', (req, res) => {
         res.send(`DELETED ${key}`);
     }catch(err){
         console.error('[set] Error deleting variable value', err);
-        res.send(err);
+        res.send('ERROR: ' + err);
     }
 })
 
