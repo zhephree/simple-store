@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const db = require('./db');
 
-const port = process.env.PORT || 32323;
+const port = process.env.SIMPLE_PORT || 32323;
 
 const coerce = (value) => {
     if(parseFloat(value).toString() == value){
