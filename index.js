@@ -209,7 +209,11 @@ app.get('/get/:key', (req, res) => {
         if(row){
             res.send(row.value);
         }else{
-            res.send('')
+            if(req.query.hasOwnProperty('default')){
+                res.send(req.query.default);
+            }else{
+                res.send('')
+            }
         }
     })
 })
@@ -266,6 +270,17 @@ app.get('/get/?\?', (req, res) => {
  * Example Response: DELETED some_var
  */
 app.post('/delete/:key', (req, res) => {
+    const key = req.params.key;
+    try{
+        db.run(`DELETE FROM variables WHERE key=?`, key);
+        res.send(`DELETED ${key}`);
+    }catch(err){
+        console.error('[set] Error deleting variable value', err);
+        res.send('ERROR: ' + err);
+    }
+})
+
+app.delete('/set/:key', (req, res) => {
     const key = req.params.key;
     try{
         db.run(`DELETE FROM variables WHERE key=?`, key);
