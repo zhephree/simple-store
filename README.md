@@ -37,8 +37,8 @@ Use this to set one or more variables. Useful for platforms that won't let you s
 
 
 ### Getting Data
-**Endpoint:** `/get/:key` (e.g. /get/my_var)\
-**Method:** GET\
+**Endpoint:** `/get/:key` (e.g. /get/my_var)  
+**Method:** GET  
 **Response:** Plain text value of the key. If key has not yet been set, then an empty response is returned.
 
 If you do not want an empty response returned in the event that the key has not yet been set, you can provide a `?default=` query parameter to the URL to return a default value if no data is stored for that key.
@@ -47,32 +47,32 @@ For example, calling `/get/some_unset_var?default=foo` would return `foo` as the
 
 ---
 
-**Endpoint:** `/get/?:key,:key,...:key` (e.g. /get?my_var,thing,stuff)
-**Method:** GET
+**Endpoint:** `/get/?:key,:key,...:key` (e.g. /get?my_var,thing,stuff)  
+**Method:** GET  
 **Response:** A plain text comma-separated list of values for each key in order. If a key has not been set, `UNDEFINED` will be returned for that key. 
 
 For example, calling `/get?my_var,some_unset_var,stuff` might return `1234,UNDEFINED,things`
 
 ---
 
-**Endpoint:** `/get/json/?:key,:key,...:key` (e.g. /get/json/?my_var,thing,stuff)
-**Method:** GET
+**Endpoint:** `/get/json/?:key,:key,...:key` (e.g. /get/json/?my_var,thing,stuff)  
+**Method:** GET  
 **Response:** A JSON string containing key/value pairs for all keys found and set in the database.
 
 If a key has not yet been set, it is omitted from the JSON response. This deviates from above since a missing JSON key means it is undefined anyway.
 
 ### Removing Data
 
-**Endpoint:** `/delete/:key` (e.g. /delete/my_var)
-**Method:** POST
+**Endpoint:** `/delete/:key` (e.g. /delete/my_var)  
+**Method:** POST  
 **Response:** `DELETED my_var`
 
 This method is not truly restful as it should use the DELETE HTTP verb, however, not all platforms support verbs outside of GET and POST, so this exists for wider compatibility.
 
 ---
 
-**Endpoint:** `/set/:key` (e.g. /set/my_var)
-**Method:** DELETE
+**Endpoint:** `/set/:key` (e.g. /set/my_var)  
+**Method:** DELETE  
 **Response:** `DELETED my_var`
 
 If you prefer a more RESTful endpoint, this alias also exists.
