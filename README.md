@@ -37,8 +37,8 @@ Use this to set one or more variables. Useful for platforms that won't let you s
 
 
 ### Getting Data
-**Endpoint:** `/get/:key` (e.g. /get/my_var)
-**Method:** GET
+**Endpoint:** `/get/:key` (e.g. /get/my_var)\
+**Method:** GET\
 **Response:** Plain text value of the key. If key has not yet been set, then an empty response is returned.
 
 If you do not want an empty response returned in the event that the key has not yet been set, you can provide a `?default=` query parameter to the URL to return a default value if no data is stored for that key.
