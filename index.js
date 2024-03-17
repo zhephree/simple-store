@@ -67,11 +67,29 @@ app.get('/', (req, res) => {
  * takes the raw POST body and stores that as the variable's value.
  * If a variable with the same key already exists, its value will
  * be updated with the supplied value in the POST body
+ * 
+ * In addition to plain text raw POST body, you can POST a
+ * JSON object with a `value`property or a form body with a
+ * `value` field set to the desired value.
+ * Example JSON request: {"value": 112324234}
+ * Example form request: value=112324234
+ * If JSON or form are not detected, the full POST body will be
+ * used as the value.
+ * 
  * Example Response: SET some_var TO "112324234"
  */
 app.post('/set/:key', (req, res) => {
     const key = req.params.key;
-    const value = req.rawBody;
+    let value = req.rawBody;
+    
+    try{
+        const json = JSON.parse(value);
+        value = json.value;
+    }catch(err){
+        if(req.body.hasOwnProperty('value')){
+            value = req.body.value;
+        }
+    }
     let mode = 'SET';
     
     try{
